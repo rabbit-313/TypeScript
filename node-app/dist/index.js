@@ -36,7 +36,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 var HitAndBlow = /** @class */ (function () {
-    function HitAndBlow(mode) {
+    function HitAndBlow() {
         this.answerSource = [
             "1",
             "2",
@@ -50,18 +50,33 @@ var HitAndBlow = /** @class */ (function () {
         ];
         this.answer = [];
         this.tryCount = 0;
-        this.neverValue = this.mode;
-        this.mode = mode;
+        this.mode = "normal";
     }
     HitAndBlow.prototype.setting = function () {
-        var answerLength = this.getAnswerLength();
-        while (this.answer.length < answerLength) {
-            var randNum = Math.floor(Math.random() * this.answerSource.length);
-            var selectedItem = this.answerSource[randNum];
-            if (!this.answer.includes(selectedItem)) {
-                this.answer.push(selectedItem);
-            }
-        }
+        return __awaiter(this, void 0, void 0, function () {
+            var _a, answerLength, randNum, selectedItem;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
+                    case 0:
+                        _a = this;
+                        return [4 /*yield*/, promptSelect("難易度を選択してください。", [
+                                "normal",
+                                "hard",
+                            ])];
+                    case 1:
+                        _a.mode = (_b.sent());
+                        answerLength = this.getAnswerLength();
+                        while (this.answer.length < answerLength) {
+                            randNum = Math.floor(Math.random() * this.answerSource.length);
+                            selectedItem = this.answerSource[randNum];
+                            if (!this.answer.includes(selectedItem)) {
+                                this.answer.push(selectedItem);
+                            }
+                        }
+                        return [2 /*return*/];
+                }
+            });
+        });
     };
     HitAndBlow.prototype.end = function () {
         printLine("\u6B63\u89E3\u3067\u3059\uFF01\n" + this.tryCount + "\u56DE\u76EE\u3067\u30AF\u30EA\u30A2\u3057\u307E\u3057\u305F\uFF01", false);
@@ -134,27 +149,56 @@ var HitAndBlow = /** @class */ (function () {
                 return 4;
             case "very hard":
                 return 5;
+            default:
+                var neverValue = this.mode;
+                throw new Error("Unexpected mode: " + neverValue);
         }
     };
     return HitAndBlow;
 }());
-throw new Error("Unexpected mode: " + neverValue);
 var printLine = function (text, brakeLine) {
     if (brakeLine === void 0) { brakeLine = true; }
     process.stdout.write(text + (brakeLine ? "\n" : ""));
 };
 var promptInput = function (text) { return __awaiter(void 0, void 0, void 0, function () {
+    return __generator(this, function (_a) {
+        printLine("\n" + text, false);
+        return [2 /*return*/, readLine()];
+    });
+}); };
+var readLine = function () { return __awaiter(void 0, void 0, void 0, function () {
+    var input;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0: return [4 /*yield*/, new Promise(function (resolve) {
+                    return process.stdin.once("data", function (data) { return resolve(data.toString()); });
+                })];
+            case 1:
+                input = _a.sent();
+                return [2 /*return*/, input.trim()];
+        }
+    });
+}); };
+var promptSelect = function (text, values) { return __awaiter(void 0, void 0, void 0, function () {
     var input;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                printLine("\n" + text, false);
-                return [4 /*yield*/, new Promise(function (resolve) {
-                        return process.stdin.once("data", function (data) { return resolve(data.toString()); });
-                    })];
+                printLine("\n" + text);
+                values.forEach(function (value) {
+                    printLine("- " + value);
+                });
+                printLine("> ", false);
+                return [4 /*yield*/, readLine()];
             case 1:
                 input = _a.sent();
-                return [2 /*return*/, input.trim()];
+                if (values.includes(input)) {
+                    return [2 /*return*/, input];
+                }
+                else {
+                    return [2 /*return*/, promptSelect(text, values)];
+                }
+                return [2 /*return*/];
         }
     });
 }); };
@@ -163,10 +207,12 @@ var promptInput = function (text) { return __awaiter(void 0, void 0, void 0, fun
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                hitAndBlow = new HitAndBlow("hard");
-                hitAndBlow.setting();
-                return [4 /*yield*/, hitAndBlow.play()];
+                hitAndBlow = new HitAndBlow();
+                return [4 /*yield*/, hitAndBlow.setting()];
             case 1:
+                _a.sent();
+                return [4 /*yield*/, hitAndBlow.play()];
+            case 2:
                 _a.sent();
                 hitAndBlow.end();
                 return [2 /*return*/];

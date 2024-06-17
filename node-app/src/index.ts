@@ -1,3 +1,7 @@
+type Mode = "normal" | "hard" | "very hard";
+const modes = ["normal", "hard", "very hard"] as const;
+type Mode = (typeof modes)[number];
+
 class HitAndBlow {
   private readonly answerSource: string[] = [
     "1",
@@ -12,9 +16,10 @@ class HitAndBlow {
   ];
   private answer: string[] = [];
   private tryCount = 0;
-  private mode: "normal" | "hard" | "very hard";
+  private mode: Mode = "normal";
 
-  setting() {
+  async setting() {
+    this.mode = await promptSelect<Mode>("難易度を選択してください。", modes);
     const answerLength = this.getAnswerLength();
     while (this.answer.length < answerLength) {
       const randNum = Math.floor(Math.random() * this.answerSource.length);
@@ -23,10 +28,6 @@ class HitAndBlow {
         this.answer.push(selectedItem);
       }
     }
-  }
-
-  constructor(mode: "normal" | "hard") {
-    this.mode = mode;
   }
 
   end() {
@@ -97,6 +98,7 @@ class HitAndBlow {
       default:
         const neverValue: never = this.mode;
         throw new Error(`Unexpected mode: ${neverValue}`);
+    }
   }
 }
 
@@ -106,15 +108,37 @@ const printLine = (text: string, brakeLine: boolean = true) => {
 
 const promptInput = async (text: string) => {
   printLine(`\n${text}`, false);
+  return readLine();
+};
+
+const readLine = async () => {
   const input: string = await new Promise((resolve) =>
     process.stdin.once("data", (data) => resolve(data.toString()))
   );
   return input.trim();
 };
 
+const promptSelect = async <T extends string>(
+  text: string,
+  values: readonly T[]
+): Promise<T> => {
+  printLine(`\n${text}`);
+  values.forEach((value) => {
+    printLine(`- ${value}`);
+  });
+  printLine(`> `, false);
+
+  const input = (await readLine()) as T;
+  if (values.includes(input)) {
+    return input;
+  } else {
+    return promptSelect<T>(text, values);
+  }
+};
+
 (async () => {
-  const hitAndBlow = new HitAndBlow("hard");
-  hitAndBlow.setting();
+  const hitAndBlow = new HitAndBlow();
+  await hitAndBlow.setting();
   await hitAndBlow.play();
   hitAndBlow.end();
 })();
