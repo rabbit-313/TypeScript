@@ -1,23 +1,35 @@
-import { EventListner } from "./EventListner";
-import { Task } from "./Task";
+import { EventListener } from "./EventListener";
+import { Status, Task, statusMap } from "./Task";
 import { TaskCollection } from "./TaskCollection";
 import { TaskRenderer } from "./TaskRenderer";
 
 class Application {
-  private readonly eventListener = new EventListner();
+  private readonly eventListener = new EventListener();
   private readonly taskCollection = new TaskCollection();
   private readonly taskRenderer = new TaskRenderer(
-    document.getElementById("todoList") as HTMLElement
+    document.getElementById("todoList") as HTMLElement,
+    document.getElementById("doingList") as HTMLElement,
+    document.getElementById("doneList") as HTMLElement
   );
 
   start() {
     const createForm = document.getElementById("createForm") as HTMLFormElement;
+    const deleteAllDoneTaskButton = document.getElementById(
+      "deleteAllDoneTask"
+    ) as HTMLElement;
     this.eventListener.add(
-      "submit-handeler",
+      "submit-handler",
       "submit",
       createForm,
       this.handleSubmit
     );
+    this.eventListener.add(
+      "click-handler",
+      "click",
+      deleteAllDoneTaskButton,
+      this.handleClickDeleteAllDoneTasks
+    );
+    this.taskRenderer.subscribeDragAndDrop(this.handleDropAndDrop);
   }
 
   private handleSubmit = (e: Event) => {
@@ -38,10 +50,43 @@ class Application {
     titleInput.value = "";
   };
 
+  private executeDeleteTask = (task: Task) => {
+    this.eventListener.remove(task.id);
+    this.taskCollection.delete(task);
+    this.taskRenderer.remove(task);
+  };
+
   private handleClickDeleteTask = (task: Task) => {
     if (!window.confirm(`「${task.title}」を削除しますか？`)) return;
 
+    this.executeDeleteTask(task);
+  };
+
+  private handleDropAndDrop = (
+    el: Element,
+    sibling: Element | null,
+    newStatus: Status
+  ) => {
+    const taskId = this.taskRenderer.getId(el);
+
+    if (!taskId) return;
+
+    const task = this.taskCollection.find(taskId);
+
+    if (!task) return;
+
+    task.update({ status: newStatus });
+    this.taskCollection.update(task);
+
     console.log(task);
+  };
+
+  private handleClickDeleteAllDoneTasks = () => {
+    if (!window.confirm("Doneタスクを全て削除しますか？")) return;
+
+    const doneTasks = this.taskCollection.filter(statusMap.done);
+
+    doneTasks.forEach((task) => this.executeDeleteTask(task));
   };
 }
 

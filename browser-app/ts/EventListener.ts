@@ -1,4 +1,4 @@
-type Listners = {
+type Listeners = {
   [id: string]: {
     event: string;
     element: HTMLElement;
@@ -6,8 +6,8 @@ type Listners = {
   };
 };
 
-export class EventListner {
-  private readonly listeners: Listners = {};
+export class EventListener {
+  private readonly listeners: Listeners = {};
 
   add(
     listenerId: string,
