@@ -13,10 +13,12 @@ class Application {
   );
 
   start() {
+    const taskItems = this.taskRenderer.renderAll(this.taskCollection);
     const createForm = document.getElementById("createForm") as HTMLFormElement;
     const deleteAllDoneTaskButton = document.getElementById(
       "deleteAllDoneTask"
     ) as HTMLElement;
+
     this.eventListener.add(
       "submit-handler",
       "submit",
@@ -30,6 +32,11 @@ class Application {
       this.handleClickDeleteAllDoneTasks
     );
     this.taskRenderer.subscribeDragAndDrop(this.handleDropAndDrop);
+    taskItems.forEach(({ task, deleteButtonEl }) => {
+      this.eventListener.add(task.id, "click", deleteButtonEl, () =>
+        this.handleClickDeleteTask(task)
+      );
+    });
   }
 
   private handleSubmit = (e: Event) => {
